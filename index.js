@@ -21,14 +21,15 @@ operators.forEach((o) => {
   operatorsContainer.appendChild(button);
 });
 
-const operate = (val1, val2, operator) => {
-  const calc = new Calculator(val1, val2);
-  console.log(operator);
+const operate = ({ val1, val2, operator }) => {
+  const calc = new Calculator(Number(val1), Number(val2));
   switch (operator) {
     case "+":
       return calc.add();
     case "-":
       return calc.substract();
+    case "*":
+      return calc.multiply();
     case "/":
       return calc.divide();
     case "%":
@@ -42,17 +43,48 @@ let stack = [];
 operandsContainer.addEventListener("click", (e) => {
   const target = e.target;
   const value = target.innerText;
-  stack.push(value);
+  if (!stack.length) {
+    stack.unshift(value);
+  } else {
+    if (["+", "-", "*", "/", "%"].includes(stack[0])) {
+      stack.unshift(value);
+    } else {
+      stack[0] += value;
+    }
+  }
+  const span = document.createElement("span");
+  span.innerText = value;
+  display.appendChild(span);
 });
 
 operatorsContainer.addEventListener("click", (e) => {
   const target = e.target;
   const value = target.innerText;
-  let operator;
-  if (value !== "=") operator = value;
-  console.log(operator);
-  if (value === "=") {
-    display.innerText = operate(stack[0], stack[1], operator);
+  if (value === "AC") {
+    clearDisplay();
+    return;
   }
-  if (value === "AC") stack = [];
+  if (value === "=") {
+    const result = operate({
+      val1: stack[2],
+      val2: stack[0],
+      operator: stack[1],
+    });
+    display.innerText = result;
+    return;
+  }
+  stack.unshift(value);
+  const span = document.createElement("span");
+  span.innerText = value;
+  display.appendChild(span);
 });
+
+const clearDisplay = () => {
+  let node = display.lastElementChild;
+  while (node) {
+    display.removeChild(node);
+    node = display.lastElementChild;
+  }
+  stack = [];
+  display.innerText = "";
+};
